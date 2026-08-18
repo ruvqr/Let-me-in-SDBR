@@ -1,4 +1,3 @@
--Why.u.here.are.u.tyna.skid?
 
 
 local Players = game:GetService("Players")
