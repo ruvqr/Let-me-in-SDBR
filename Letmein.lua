@@ -1,22 +1,27 @@
+-Why.u.here.are.u.tyna.skid?
+
+
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 --==================================================
--- GUI
+-- LETMEIN GUI
 --==================================================
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "MapFixesGUI"
+gui.Name = "LETMEIN"
 gui.ResetOnSpawn = false
 gui.Parent = playerGui
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(360, 360)
+main.Name = "Main"
+main.Size = UDim2.fromOffset(370, 390)
 main.Position = UDim2.fromScale(0.5, 0.5)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
-main.BackgroundColor3 = Color3.fromRGB(22, 22, 27)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 main.BorderSizePixel = 0
 main.Parent = gui
 
@@ -26,34 +31,40 @@ mainCorner.Parent = main
 
 local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = Color3.fromRGB(65, 65, 75)
-mainStroke.Transparency = 0.25
+mainStroke.Transparency = 0.2
+mainStroke.Thickness = 1
 mainStroke.Parent = main
 
 --==================================================
 -- Header
 --==================================================
 
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 65)
+header.BackgroundTransparency = 1
+header.Parent = main
+
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -70, 0, 40)
+title.Size = UDim2.new(1, -70, 0, 35)
 title.Position = UDim2.fromOffset(18, 7)
 title.BackgroundTransparency = 1
-title.Text = "Let me in"
+title.Text = "LETMEIN"
 title.TextColor3 = Color3.fromRGB(245, 245, 250)
-title.TextSize = 21
+title.TextSize = 22
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = main
+title.Parent = header
 
 local subtitle = Instance.new("TextLabel")
-subtitle.Size = UDim2.new(1, -36, 0, 20)
-subtitle.Position = UDim2.fromOffset(18, 42)
+subtitle.Size = UDim2.new(1, -70, 0, 20)
+subtitle.Position = UDim2.fromOffset(19, 36)
 subtitle.BackgroundTransparency = 1
-subtitle.Text = "Select a repair to load and fix the area"
-subtitle.TextColor3 = Color3.fromRGB(145, 145, 155)
-subtitle.TextSize = 12
+subtitle.Text = "Map repair utility"
+subtitle.TextColor3 = Color3.fromRGB(135, 135, 145)
+subtitle.TextSize = 11
 subtitle.Font = Enum.Font.Gotham
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.Parent = main
+subtitle.Parent = header
 
 --==================================================
 -- Close button
@@ -61,25 +72,25 @@ subtitle.Parent = main
 
 local close = Instance.new("TextButton")
 close.Size = UDim2.fromOffset(38, 38)
-close.Position = UDim2.new(1, -46, 0, 6)
-close.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+close.Position = UDim2.new(1, -47, 0, 9)
+close.BackgroundColor3 = Color3.fromRGB(34, 34, 41)
 close.BorderSizePixel = 0
 close.Text = "×"
 close.TextColor3 = Color3.fromRGB(235, 235, 240)
 close.TextSize = 25
 close.Font = Enum.Font.GothamBold
-close.Parent = main
+close.Parent = header
 
 local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 9)
 closeCorner.Parent = close
 
 close.MouseEnter:Connect(function()
-	close.BackgroundColor3 = Color3.fromRGB(175, 55, 55)
+	close.BackgroundColor3 = Color3.fromRGB(180, 55, 55)
 end)
 
 close.MouseLeave:Connect(function()
-	close.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+	close.BackgroundColor3 = Color3.fromRGB(34, 34, 41)
 end)
 
 close.MouseButton1Click:Connect(function()
@@ -87,15 +98,59 @@ close.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
+-- DRAGGING
+--==================================================
+
+local dragging = false
+local dragStart
+local startPosition
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+
+	main.Position = UDim2.new(
+		startPosition.X.Scale,
+		startPosition.X.Offset + delta.X,
+		startPosition.Y.Scale,
+		startPosition.Y.Offset + delta.Y
+	)
+end
+
+header.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPosition = main.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (
+		input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch
+	) then
+		updateDrag(input)
+	end
+end)
+
+--==================================================
 -- Status
 --==================================================
 
 local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, -36, 0, 25)
-status.Position = UDim2.new(0, 18, 1, -34)
+status.Size = UDim2.new(1, -36, 0, 24)
+status.Position = UDim2.new(0, 18, 1, -32)
 status.BackgroundTransparency = 1
 status.Text = "Ready"
-status.TextColor3 = Color3.fromRGB(130, 200, 255)
+status.TextColor3 = Color3.fromRGB(120, 200, 255)
 status.TextSize = 12
 status.Font = Enum.Font.Gotham
 status.TextXAlignment = Enum.TextXAlignment.Left
@@ -111,13 +166,13 @@ end
 --==================================================
 
 local container = Instance.new("Frame")
-container.Size = UDim2.new(1, -36, 0, 275)
-container.Position = UDim2.fromOffset(18, 72)
+container.Size = UDim2.new(1, -36, 0, 285)
+container.Position = UDim2.fromOffset(18, 73)
 container.BackgroundTransparency = 1
 container.Parent = main
 
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 8)
+layout.Padding = UDim.new(0, 9)
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 layout.VerticalAlignment = Enum.VerticalAlignment.Top
 layout.Parent = container
@@ -129,8 +184,8 @@ layout.Parent = container
 local function makeButton(text)
 	local button = Instance.new("TextButton")
 
-	button.Size = UDim2.new(1, 0, 0, 54)
-	button.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
+	button.Size = UDim2.new(1, 0, 0, 56)
+	button.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
 	button.BorderSizePixel = 0
 	button.Text = text
 	button.TextColor3 = Color3.fromRGB(235, 235, 240)
@@ -149,25 +204,48 @@ local function makeButton(text)
 	stroke.Parent = button
 
 	button.MouseEnter:Connect(function()
-		button.BackgroundColor3 = Color3.fromRGB(48, 48, 58)
+		button.BackgroundColor3 = Color3.fromRGB(47, 47, 57)
 	end)
 
 	button.MouseLeave:Connect(function()
-		button.BackgroundColor3 = Color3.fromRGB(34, 34, 42)
+		button.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
 	end)
 
 	return button
 end
 
 --==================================================
--- Universal failsafe
+-- Find random BasePart
+--==================================================
+
+local function getRandomPart(folder)
+	local parts = {}
+
+	for _, object in ipairs(folder:GetDescendants()) do
+		if object:IsA("BasePart") then
+			table.insert(parts, object)
+		end
+	end
+
+	if #parts == 0 then
+		return nil
+	end
+
+	return parts[math.random(1, #parts)]
+end
+
+--==================================================
+-- Universal Fix
 --==================================================
 
 local fixing = false
 
-local function runFix(areaPath, folderName, displayName)
+local function runFix(parentPath, targetName, displayName)
 	if fixing then
-		setStatus("A fix is already running...", Color3.fromRGB(255, 190, 90))
+		setStatus(
+			"Another fix is already running...",
+			Color3.fromRGB(255, 190, 90)
+		)
 		return
 	end
 
@@ -177,69 +255,128 @@ local function runFix(areaPath, folderName, displayName)
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 
 	if not character or not root then
-		setStatus("Character not ready", Color3.fromRGB(255, 90, 90))
+		setStatus(
+			"Character not ready",
+			Color3.fromRGB(255, 90, 90)
+		)
+
 		fixing = false
 		return
 	end
 
-	-- Find the area
-	local area = workspace
+	-- Find parent folder
+	local parent = workspace
 
-	for _, name in ipairs(areaPath) do
-		area = area:FindFirstChild(name)
+	for _, name in ipairs(parentPath) do
+		parent = parent:FindFirstChild(name)
 
-		if not area then
-			setStatus(displayName .. " area not found", Color3.fromRGB(255, 90, 90))
+		if not parent then
+			setStatus(
+				displayName .. " area not found",
+				Color3.fromRGB(255, 90, 90)
+			)
+
 			fixing = false
 			return
 		end
 	end
 
-	-- Save position
-	local oldCFrame = root.CFrame
+	-- Find target
+	local target = parent:FindFirstChild(targetName)
 
-	setStatus("Loading " .. displayName .. "...", Color3.fromRGB(255, 200, 90))
+	if not target then
+		setStatus(
+			targetName .. " not found",
+			Color3.fromRGB(255, 90, 90)
+		)
 
-	-- Get the area position
-	local success, areaCFrame = pcall(function()
-		local cf = area:GetBoundingBox()
-		return cf
-	end)
-
-	if not success or not areaCFrame then
-		setStatus("Couldn't locate " .. displayName, Color3.fromRGB(255, 90, 90))
 		fixing = false
 		return
 	end
 
-	--==================================================
-	-- FAILSAFE TELEPORT
-	--==================================================
+	-- Save original position
+	local oldCFrame = root.CFrame
 
-	root.CFrame = areaCFrame + Vector3.new(0, 8, 0)
+	-- Pick random object inside target
+	local randomPart = getRandomPart(target)
 
-	-- Allow StreamingEnabled objects to load
-	task.wait(1)
+	if not randomPart then
+		setStatus(
+			"No physical objects found",
+			Color3.fromRGB(255, 90, 90)
+		)
 
-	-- Check again
-	local target = area:FindFirstChild(folderName)
-
-	if not target then
-		setStatus("Waiting for objects to load...", Color3.fromRGB(255, 200, 90))
-
-		-- Extra loading time
-		task.wait(1.5)
-
-		target = area:FindFirstChild(folderName)
+		fixing = false
+		return
 	end
 
-	-- One final check
+	setStatus(
+		"Loading " .. displayName .. "...",
+		Color3.fromRGB(255, 200, 90)
+	)
+
+	--==================================================
+	-- GOTO RANDOM ITEM
+	--==================================================
+
+	root.CFrame = randomPart.CFrame + Vector3.new(0, 5, 0)
+
+	-- Give StreamingEnabled time to load
+	task.wait(1)
+
+	setStatus(
+		"Checking " .. targetName .. "...",
+		Color3.fromRGB(255, 200, 90)
+	)
+
+	-- Re-find everything after loading
+	parent = workspace
+
+	for _, name in ipairs(parentPath) do
+		parent = parent:FindFirstChild(name)
+
+		if not parent then
+			setStatus(
+				"Area failed to load",
+				Color3.fromRGB(255, 90, 90)
+			)
+
+			root.CFrame = oldCFrame
+			fixing = false
+			return
+		end
+	end
+
+	target = parent:FindFirstChild(targetName)
+
+	-- Extra retry
+	if not target then
+		setStatus(
+			"Waiting for objects...",
+			Color3.fromRGB(255, 200, 90)
+		)
+
+		task.wait(1.5)
+
+		target = parent:FindFirstChild(targetName)
+	end
+
+	--==================================================
+	-- DELETE
+	--==================================================
+
 	if target then
 		target:Destroy()
 
-		setStatus(displayName .. " fixed successfully", Color3.fromRGB(100, 220, 140))
+		setStatus(
+			displayName .. " fixed successfully",
+			Color3.fromRGB(100, 220, 140)
+		)
 	else
-		setStatus(folderName .. " wasn't loaded/found", Color3.fromRGB(255, 90, 90))
+		setStatus(
+			targetName .. " could not be found",
+			Color3.fromRGB(255, 90, 90)
+		)
 	end
 
 	-- Return player
@@ -253,8 +390,8 @@ local function runFix(areaPath, folderName, displayName)
 end
 
 --==================================================
--- Border Fix
--- Workspace > Map > Static > Global > Gates
+-- BORDER FIX
+-- Map > Static > Global > Gates
 --==================================================
 
 local borderButton = makeButton("Border Fixes")
@@ -268,8 +405,8 @@ borderButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- Bank Fix
--- Workspace > Bank > Building > Doors
+-- BANK FIX
+-- Bank > Building > Doors
 --==================================================
 
 local bankButton = makeButton("Bank Fixes")
@@ -283,8 +420,8 @@ bankButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- Apartment Fix
--- Workspace > Apartments > Doors
+-- APARTMENT FIX
+-- Apartments > Doors
 --==================================================
 
 local apartmentButton = makeButton("Apartment Fix")
@@ -298,8 +435,8 @@ apartmentButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- Jewellery Fix
--- Workspace > JewelleryStore > Doors
+-- JEWELLERY FIX
+-- JewelleryStore > Doors
 --==================================================
 
 local jewelleryButton = makeButton("Jewellery Fix")
