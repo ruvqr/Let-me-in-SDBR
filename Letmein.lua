@@ -1,5 +1,3 @@
-
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
@@ -17,7 +15,7 @@ gui.Parent = playerGui
 
 local main = Instance.new("Frame")
 main.Name = "Main"
-main.Size = UDim2.fromOffset(370, 390)
+main.Size = UDim2.fromOffset(370, 500)
 main.Position = UDim2.fromScale(0.5, 0.5)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -35,7 +33,7 @@ mainStroke.Thickness = 1
 mainStroke.Parent = main
 
 --==================================================
--- Header
+-- HEADER
 --==================================================
 
 local header = Instance.new("Frame")
@@ -66,7 +64,7 @@ subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.Parent = header
 
 --==================================================
--- Close button
+-- CLOSE BUTTON
 --==================================================
 
 local close = Instance.new("TextButton")
@@ -104,17 +102,6 @@ local dragging = false
 local dragStart
 local startPosition
 
-local function updateDrag(input)
-	local delta = input.Position - dragStart
-
-	main.Position = UDim2.new(
-		startPosition.X.Scale,
-		startPosition.X.Offset + delta.X,
-		startPosition.Y.Scale,
-		startPosition.Y.Offset + delta.Y
-	)
-end
-
 header.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
@@ -136,12 +123,20 @@ UserInputService.InputChanged:Connect(function(input)
 		input.UserInputType == Enum.UserInputType.MouseMovement
 		or input.UserInputType == Enum.UserInputType.Touch
 	) then
-		updateDrag(input)
+
+		local delta = input.Position - dragStart
+
+		main.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
 	end
 end)
 
 --==================================================
--- Status
+-- STATUS
 --==================================================
 
 local status = Instance.new("TextLabel")
@@ -161,13 +156,18 @@ local function setStatus(text, color)
 end
 
 --==================================================
--- Button container
+-- BUTTON CONTAINER
 --==================================================
 
-local container = Instance.new("Frame")
-container.Size = UDim2.new(1, -36, 0, 285)
+local container = Instance.new("ScrollingFrame")
+container.Size = UDim2.new(1, -36, 1, -125)
 container.Position = UDim2.fromOffset(18, 73)
 container.BackgroundTransparency = 1
+container.BorderSizePixel = 0
+container.ScrollBarThickness = 3
+container.ScrollBarImageTransparency = 0.4
+container.CanvasSize = UDim2.new(0, 0, 0, 0)
+container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 container.Parent = main
 
 local layout = Instance.new("UIListLayout")
@@ -177,13 +177,14 @@ layout.VerticalAlignment = Enum.VerticalAlignment.Top
 layout.Parent = container
 
 --==================================================
--- Button creator
+-- BUTTON CREATOR
 --==================================================
 
 local function makeButton(text)
+
 	local button = Instance.new("TextButton")
 
-	button.Size = UDim2.new(1, 0, 0, 56)
+	button.Size = UDim2.new(1, -2, 0, 56)
 	button.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
 	button.BorderSizePixel = 0
 	button.Text = text
@@ -214,10 +215,11 @@ local function makeButton(text)
 end
 
 --==================================================
--- Find random BasePart
+-- RANDOM PART FINDER
 --==================================================
 
 local function getRandomPart(folder)
+
 	local parts = {}
 
 	for _, object in ipairs(folder:GetDescendants()) do
@@ -234,12 +236,13 @@ local function getRandomPart(folder)
 end
 
 --==================================================
--- Universal Fix
+-- UNIVERSAL FIX
 --==================================================
 
 local fixing = false
 
 local function runFix(parentPath, targetName, displayName)
+
 	if fixing then
 		setStatus(
 			"Another fix is already running...",
@@ -263,10 +266,11 @@ local function runFix(parentPath, targetName, displayName)
 		return
 	end
 
-	-- Find parent folder
+	-- Find parent
 	local parent = workspace
 
 	for _, name in ipairs(parentPath) do
+
 		parent = parent:FindFirstChild(name)
 
 		if not parent then
@@ -293,10 +297,10 @@ local function runFix(parentPath, targetName, displayName)
 		return
 	end
 
-	-- Save original position
+	-- Save current position
 	local oldCFrame = root.CFrame
 
-	-- Pick random object inside target
+	-- Pick a random physical object
 	local randomPart = getRandomPart(target)
 
 	if not randomPart then
@@ -315,23 +319,27 @@ local function runFix(parentPath, targetName, displayName)
 	)
 
 	--==================================================
-	-- GOTO RANDOM ITEM
+	-- TELEPORT TO RANDOM ITEM
 	--==================================================
 
 	root.CFrame = randomPart.CFrame + Vector3.new(0, 5, 0)
 
-	-- Give StreamingEnabled time to load
+	-- Give streaming time
 	task.wait(1)
+
+	--==================================================
+	-- RECHECK AFTER LOADING
+	--==================================================
 
 	setStatus(
 		"Checking " .. targetName .. "...",
 		Color3.fromRGB(255, 200, 90)
 	)
 
-	-- Re-find everything after loading
 	parent = workspace
 
 	for _, name in ipairs(parentPath) do
+
 		parent = parent:FindFirstChild(name)
 
 		if not parent then
@@ -348,8 +356,9 @@ local function runFix(parentPath, targetName, displayName)
 
 	target = parent:FindFirstChild(targetName)
 
-	-- Extra retry
+	-- Retry once
 	if not target then
+
 		setStatus(
 			"Waiting for objects...",
 			Color3.fromRGB(255, 200, 90)
@@ -361,17 +370,20 @@ local function runFix(parentPath, targetName, displayName)
 	end
 
 	--==================================================
-	-- DELETE
+	-- DELETE TARGET
 	--==================================================
 
 	if target then
+
 		target:Destroy()
 
 		setStatus(
 			displayName .. " fixed successfully",
 			Color3.fromRGB(100, 220, 140)
 		)
+
 	else
+
 		setStatus(
 			targetName .. " could not be found",
 			Color3.fromRGB(255, 90, 90)
@@ -390,60 +402,231 @@ end
 
 --==================================================
 -- BORDER FIX
--- Map > Static > Global > Gates
+-- Workspace > Map > Static > Global > Gates
 --==================================================
 
 local borderButton = makeButton("Border Fixes")
 
 borderButton.MouseButton1Click:Connect(function()
+
 	runFix(
 		{"Map", "Static", "Global"},
 		"Gates",
 		"Border"
 	)
+
 end)
 
 --==================================================
 -- BANK FIX
--- Bank > Building > Doors
+-- Workspace > Bank > Building > Doors
 --==================================================
 
 local bankButton = makeButton("Bank Fixes")
 
 bankButton.MouseButton1Click:Connect(function()
+
 	runFix(
 		{"Bank", "Building"},
 		"Doors",
 		"Bank"
 	)
+
 end)
 
 --==================================================
 -- APARTMENT FIX
--- Apartments > Doors
+-- Workspace > Apartments > Doors
 --==================================================
 
 local apartmentButton = makeButton("Apartment Fix")
 
 apartmentButton.MouseButton1Click:Connect(function()
+
 	runFix(
 		{"Apartments"},
 		"Doors",
 		"Apartment"
 	)
+
 end)
 
 --==================================================
 -- JEWELLERY FIX
--- JewelleryStore > Doors
+-- Workspace > JewelleryStore > Doors
 --==================================================
 
 local jewelleryButton = makeButton("Jewellery Fix")
 
 jewelleryButton.MouseButton1Click:Connect(function()
+
 	runFix(
 		{"JewelleryStore"},
 		"Doors",
 		"Jewellery"
 	)
+
+end)
+
+--==================================================
+-- REMOVE SPEED LIMIT
+-- Workspace > GameRegions > BorderSpeedLimitRegion
+--==================================================
+
+local speedButton = makeButton("Remove Speed Limit")
+
+speedButton.MouseButton1Click:Connect(function()
+
+	runFix(
+		{"GameRegions"},
+		"BorderSpeedLimitRegion",
+		"Speed Limit"
+	)
+
+end)
+
+--==================================================
+-- LOAD ALL AREAS
+--
+-- This ONLY teleports through GameRegions.
+-- It does NOT delete anything.
+-- Run this before the other fixes if needed.
+--==================================================
+
+local loadAreasButton = makeButton("Load All Areas")
+
+loadAreasButton.MouseButton1Click:Connect(function()
+
+	if fixing then
+
+		setStatus(
+			"Another operation is already running...",
+			Color3.fromRGB(255, 190, 90)
+		)
+
+		return
+	end
+
+	fixing = true
+
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+
+	if not character or not root then
+
+		setStatus(
+			"Character not ready",
+			Color3.fromRGB(255, 90, 90)
+		)
+
+		fixing = false
+		return
+	end
+
+	local regions = workspace:FindFirstChild("GameRegions")
+
+	if not regions then
+
+		setStatus(
+			"GameRegions not found",
+			Color3.fromRGB(255, 90, 90)
+		)
+
+		fixing = false
+		return
+	end
+
+	-- Save starting position
+	local oldCFrame = root.CFrame
+
+	setStatus(
+		"Preparing map...",
+		Color3.fromRGB(255, 200, 90)
+	)
+
+	--==================================================
+	-- BUILD REGION LIST
+	--==================================================
+
+	local regionParts = {}
+
+	for _, region in ipairs(regions:GetChildren()) do
+
+		local part = nil
+
+		if region:IsA("BasePart") then
+
+			part = region
+
+		else
+
+			for _, object in ipairs(region:GetDescendants()) do
+
+				if object:IsA("BasePart") then
+
+					part = object
+					break
+
+				end
+
+			end
+		end
+
+		if part then
+
+			table.insert(regionParts, {
+				name = region.Name,
+				part = part
+			})
+
+		end
+	end
+
+	--==================================================
+	-- VISIT EVERY GAME REGION
+	--==================================================
+
+	for index, data in ipairs(regionParts) do
+
+		setStatus(
+			"Loading area "
+				.. index
+				.. "/"
+				.. #regionParts
+				.. " • "
+				.. data.name,
+			Color3.fromRGB(255, 200, 90)
+		)
+
+		if data.part and data.part.Parent then
+
+			root.CFrame = data.part.CFrame + Vector3.new(0, 8, 0)
+
+			task.wait(0.4)
+
+		end
+	end
+
+	-- Final streaming wait
+	setStatus(
+		"Finishing map load...",
+		Color3.fromRGB(255, 200, 90)
+	)
+
+	task.wait(1.5)
+
+	--==================================================
+	-- RETURN TO ORIGINAL LOCATION
+	--==================================================
+
+	if character.Parent and root.Parent then
+		root.CFrame = oldCFrame
+	end
+
+	setStatus(
+		"All areas loaded",
+		Color3.fromRGB(100, 220, 140)
+	)
+
+	fixing = false
 end)
